@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 
 namespace Steeltoe.Common.Discovery
 {
-    public interface IDiscoveryClient : IServiceInstanceProvider
+    public interface IDiscoveryLoadBalancer
     {
         /// <summary>
-        ///  ServiceInstance with information used to register the local service
+        /// Selects one service instance from a list
         /// </summary>
-        /// <returns>The IServiceInstance</returns>
-        IServiceInstance GetLocalServiceInstance();
-
-        Task ShutdownAsync();
+        /// <param name="serviceInstances">A list of service instances returned from a service registry</param>
+        /// <remarks>This implementation is probably too simplistic. TODO: undo?</remarks>
+        /// <returns>The Uri for the selected service instance</returns>
+        Uri SelectHost(IList<IServiceInstance> serviceInstances);
     }
 }

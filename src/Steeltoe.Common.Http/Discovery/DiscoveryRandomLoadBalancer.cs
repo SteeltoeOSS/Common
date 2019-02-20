@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 
 namespace Steeltoe.Common.Discovery
 {
-    public interface IDiscoveryClient : IServiceInstanceProvider
+    public class DiscoveryRandomLoadBalancer : IDiscoveryLoadBalancer
     {
-        /// <summary>
-        ///  ServiceInstance with information used to register the local service
-        /// </summary>
-        /// <returns>The IServiceInstance</returns>
-        IServiceInstance GetLocalServiceInstance();
+        protected static Random _random = new Random();
 
-        Task ShutdownAsync();
+        public Uri SelectHost(IList<IServiceInstance> serviceInstances)
+        {
+            var index = _random.Next(serviceInstances.Count);
+            return serviceInstances[index].Uri;
+        }
     }
 }

@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Threading.Tasks;
 
-namespace Steeltoe.Common.Discovery
+namespace Steeltoe.Common.LoadBalancer
 {
-    public interface IDiscoveryClient : IServiceInstanceProvider
+    public interface ILoadBalancer
     {
-        /// <summary>
-        ///  ServiceInstance with information used to register the local service
-        /// </summary>
-        /// <returns>The IServiceInstance</returns>
-        IServiceInstance GetLocalServiceInstance();
+        Uri ResolveServiceInstance(Uri request);
 
-        Task ShutdownAsync();
+        Task UpdateStats(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception);
     }
 }

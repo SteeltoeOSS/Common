@@ -19,13 +19,14 @@ namespace Steeltoe.Common.Discovery
 {
     public class DiscoveryHttpClientHandlerBase
     {
-        protected static Random _random = new Random();
         protected IDiscoveryClient _client;
+        protected IDiscoveryLoadBalancer _loadBalancer;
         protected ILogger _logger;
 
-        public DiscoveryHttpClientHandlerBase(IDiscoveryClient client, ILogger logger = null)
+        public DiscoveryHttpClientHandlerBase(IDiscoveryClient client, ILogger logger = null, IDiscoveryLoadBalancer loadBalancer = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _loadBalancer = loadBalancer ?? new DiscoveryRandomLoadBalancer();
             _logger = logger;
         }
 
@@ -40,8 +41,7 @@ namespace Steeltoe.Common.Discovery
             var instances = _client.GetInstances(current.Host);
             if (instances.Count > 0)
             {
-                var index = _random.Next(instances.Count);
-                var result = instances[index].Uri;
+                var result = _loadBalancer.SelectHost(instances);
                 _logger?.LogDebug("Resolved {url} to {service}", current.Host, result.Host);
                 current = new Uri(result, current.PathAndQuery);
             }
