@@ -12,21 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 using Steeltoe.Common.Discovery;
-using Steeltoe.Common.Http.Test;
 using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace Steeltoe.Common.Http.LoadBalancer.Test
+namespace Steeltoe.Common.LoadBalancer.Test
 {
-    public class RoundRobinLoadBalancerTest
+    public class RoundRobinDistributedLoadBalancerTest
     {
         [Fact]
         public void Throws_If_IServiceInstanceProviderNotProvided()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new RoundRobinLoadBalancer(null));
+            var exception = Assert.Throws<ArgumentNullException>(() => new RoundRobinDistributedLoadBalancer(null, GetCache()));
             Assert.Equal("serviceInstanceProvider", exception.ParamName);
+        }
+
+        [Fact]
+        public void Throws_If_IDistributedNotProvided()
+        {
+            var exception = Assert.Throws<ArgumentNullException>(() => new RoundRobinDistributedLoadBalancer(new ConfigurationServiceInstanceProvider(new TestOptionsMonitor<List<ConfigurationServiceInstance>>(new List<ConfigurationServiceInstance>())), null));
+            Assert.Equal("distributedCache", exception.ParamName);
         }
 
         [Fact]
@@ -44,20 +52,25 @@ namespace Steeltoe.Common.Http.LoadBalancer.Test
             };
             var serviceOptions = new TestOptionsMonitor<List<ConfigurationServiceInstance>>(services);
             var provider = new ConfigurationServiceInstanceProvider(serviceOptions);
-            var loadBalancer = new RoundRobinLoadBalancer(provider);
+            var loadBalancer = new RoundRobinDistributedLoadBalancer(provider, GetCache());
 
             // act
-            Assert.Throws<KeyNotFoundException>(() => loadBalancer.NextIndexForService["fruitService"]);
-            Assert.Throws<KeyNotFoundException>(() => loadBalancer.NextIndexForService["vegetableService"]);
             var fruitResult = await loadBalancer.ResolveServiceInstanceAsync(new Uri("http://fruitservice/api"));
             await loadBalancer.ResolveServiceInstanceAsync(new Uri("http://vegetableservice/api"));
             var vegResult = await loadBalancer.ResolveServiceInstanceAsync(new Uri("http://vegetableservice/api"));
 
             // assert
-            Assert.Equal(1, loadBalancer.NextIndexForService["fruitservice"]);
             Assert.Equal(8000, fruitResult.Port);
-            Assert.Equal(2, loadBalancer.NextIndexForService["vegetableservice"]);
             Assert.Equal(8011, vegResult.Port);
+        }
+
+        private IDistributedCache GetCache()
+        {
+            var services = new ServiceCollection();
+            services.AddDistributedMemoryCache();
+            var serviceProvider = services.BuildServiceProvider();
+
+            return serviceProvider.GetService<IDistributedCache>();
         }
     }
 }

@@ -14,7 +14,7 @@
 
 using System.IO;
 
-namespace Steeltoe.Common.Http
+namespace Steeltoe.Common
 {
     public class TestHelpers
     {

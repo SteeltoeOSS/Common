@@ -17,14 +17,18 @@ using System.Collections.Generic;
 
 namespace Steeltoe.Common.Discovery
 {
-    public interface IDiscoveryLoadBalancer
+    public class ConfigurationServiceInstance : IServiceInstance
     {
-        /// <summary>
-        /// Selects one service instance from a list
-        /// </summary>
-        /// <param name="serviceInstances">A list of service instances returned from a service registry</param>
-        /// <remarks>This implementation is probably too simplistic. TODO: undo?</remarks>
-        /// <returns>The Uri for the selected service instance</returns>
-        Uri SelectHost(IList<IServiceInstance> serviceInstances);
+        public string ServiceId { get; set; }
+
+        public string Host { get; set; }
+
+        public int Port { get; set; }
+
+        public bool IsSecure { get; set; }
+
+        public Uri Uri => new Uri((IsSecure ? Uri.UriSchemeHttps : Uri.UriSchemeHttp) + Uri.SchemeDelimiter + Host + ':' + Port);
+
+        public IDictionary<string, string> Metadata { get; set; }
     }
 }

@@ -13,20 +13,22 @@
 // limitations under the License.
 
 using Microsoft.Extensions.Logging;
+using Steeltoe.Common.LoadBalancer;
 using System;
+using System.Threading.Tasks;
 
 namespace Steeltoe.Common.Discovery
 {
     public class DiscoveryHttpClientHandlerBase
     {
         protected IDiscoveryClient _client;
-        protected IDiscoveryLoadBalancer _loadBalancer;
+        protected ILoadBalancer _loadBalancer;
         protected ILogger _logger;
 
-        public DiscoveryHttpClientHandlerBase(IDiscoveryClient client, ILogger logger = null, IDiscoveryLoadBalancer loadBalancer = null)
+        public DiscoveryHttpClientHandlerBase(IDiscoveryClient client, ILogger logger = null, ILoadBalancer loadBalancer = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _loadBalancer = loadBalancer ?? new DiscoveryRandomLoadBalancer();
+            _loadBalancer = loadBalancer ?? new RandomLoadBalancer(client);
             _logger = logger;
         }
 
@@ -38,20 +40,18 @@ namespace Steeltoe.Common.Discovery
                 return current;
             }
 
-            var instances = _client.GetInstances(current.Host);
-            if (instances.Count > 0)
+            return Task.Run(async () => await _loadBalancer.ResolveServiceInstanceAsync(current)).Result;
+        }
+
+        public virtual async Task<Uri> LookupServiceAsync(Uri current)
+        {
+            _logger?.LogDebug("LookupService({0})", current.ToString());
+            if (!current.IsDefaultPort)
             {
-                var result = _loadBalancer.SelectHost(instances);
-                _logger?.LogDebug("Resolved {url} to {service}", current.Host, result.Host);
-                current = new Uri(result, current.PathAndQuery);
-            }
-            else
-            {
-                _logger?.LogWarning("Attempted to resolve service for {url} but found 0 instances", current.Host);
+                return current;
             }
 
-            _logger?.LogDebug("LookupService() returning {0} ", current.ToString());
-            return current;
+            return await _loadBalancer.ResolveServiceInstanceAsync(current);
         }
     }
 }

@@ -12,19 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 
-namespace Steeltoe.Common.Discovery
+namespace Steeltoe.Common
 {
-    public class DiscoveryRandomLoadBalancer : IDiscoveryLoadBalancer
+    public class TestOptionsMonitor<T> : IOptionsMonitor<T>
     {
-        protected static Random _random = new Random();
-
-        public Uri SelectHost(IList<IServiceInstance> serviceInstances)
+        public TestOptionsMonitor(T currentValue)
         {
-            var index = _random.Next(serviceInstances.Count);
-            return serviceInstances[index].Uri;
+            CurrentValue = currentValue;
         }
+
+        public T Get(string name)
+        {
+            return CurrentValue;
+        }
+
+        public IDisposable OnChange(Action<T, string> listener)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T CurrentValue { get; }
     }
 }

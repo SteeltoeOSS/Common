@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Steeltoe.Common.Discovery;
 using Steeltoe.Common.Http.LoadBalancer;
 using Steeltoe.Common.LoadBalancer;
@@ -36,11 +37,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (!builder.Services.Contains(new ServiceDescriptor(typeof(ILoadBalancer), typeof(RandomLoadBalancer), ServiceLifetime.Transient)))
-            {
-                builder.Services.AddTransient(typeof(ILoadBalancer), typeof(RandomLoadBalancer));
-                builder.Services.AddTransient(typeof(RandomLoadBalancer), typeof(RandomLoadBalancer));
-            }
+            builder.Services.TryAddTransient(typeof(ILoadBalancer), typeof(RandomLoadBalancer));
+            builder.Services.TryAddTransient(typeof(RandomLoadBalancer), typeof(RandomLoadBalancer));
 
             return builder.AddLoadBalancer<RandomLoadBalancer>();
         }
@@ -58,11 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (!builder.Services.Contains(new ServiceDescriptor(typeof(ILoadBalancer), typeof(RoundRobinLoadBalancer), ServiceLifetime.Transient)))
-            {
-                builder.Services.AddTransient(typeof(ILoadBalancer), typeof(RoundRobinLoadBalancer));
-                builder.Services.AddTransient(typeof(RoundRobinLoadBalancer), typeof(RoundRobinLoadBalancer));
-            }
+            builder.Services.TryAddTransient(typeof(ILoadBalancer), typeof(RoundRobinLoadBalancer));
+            builder.Services.TryAddTransient(typeof(RoundRobinLoadBalancer), typeof(RoundRobinLoadBalancer));
 
             return builder.AddLoadBalancer<RoundRobinLoadBalancer>();
         }
@@ -83,12 +78,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (!builder.Services.Contains(new ServiceDescriptor(typeof(ILoadBalancer), typeof(RoundRobinDistributedLoadBalancer), ServiceLifetime.Transient)))
-            {
-                builder.Services.AddTransient(typeof(ILoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
-                builder.Services.AddTransient(typeof(RoundRobinDistributedLoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
-            }
-
+            builder.Services.TryAddTransient(typeof(ILoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
+            builder.Services.AddTransient(typeof(RoundRobinDistributedLoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
             return builder.AddLoadBalancer<RoundRobinDistributedLoadBalancer>();
         }
 
@@ -106,11 +97,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (!builder.Services.Contains(new ServiceDescriptor(typeof(LoadBalancerDelegatingHandler<T>), typeof(LoadBalancerDelegatingHandler<T>), ServiceLifetime.Transient)))
-            {
-                builder.Services.AddTransient<LoadBalancerDelegatingHandler<T>>();
-            }
-
+            builder.Services.TryAddTransient<LoadBalancerDelegatingHandler<T>>();
             builder.AddHttpMessageHandler<LoadBalancerDelegatingHandler<T>>();
             return builder;
         }

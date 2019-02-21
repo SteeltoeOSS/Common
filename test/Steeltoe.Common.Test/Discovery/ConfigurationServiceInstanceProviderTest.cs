@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Steeltoe.Common.Discovery;
-using Steeltoe.Common.Http.Test;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace Steeltoe.Common.Http.Discovery.Test
+namespace Steeltoe.Common.Discovery.Test
 {
     public class ConfigurationServiceInstanceProviderTest
     {

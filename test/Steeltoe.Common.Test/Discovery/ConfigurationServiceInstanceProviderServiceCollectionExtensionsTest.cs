@@ -14,11 +14,10 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Steeltoe.Common.Discovery;
 using System.IO;
 using Xunit;
 
-namespace Steeltoe.Common.Http.Test.Discovery
+namespace Steeltoe.Common.Discovery.Test
 {
     public class ConfigurationServiceInstanceProviderServiceCollectionExtensionsTest
     {

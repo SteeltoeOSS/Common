@@ -12,28 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Extensions.Options;
-using System;
+using System.Runtime.CompilerServices;
 
-namespace Steeltoe.Common.Http.Test
-{
-    public class TestOptionsMonitor<T> : IOptionsMonitor<T>
-    {
-        public TestOptionsMonitor(T currentValue)
-        {
-            CurrentValue = currentValue;
-        }
-
-        public T Get(string name)
-        {
-            return CurrentValue;
-        }
-
-        public IDisposable OnChange(Action<T, string> listener)
-        {
-            throw new NotImplementedException();
-        }
-
-        public T CurrentValue { get; }
-    }
-}
+[assembly: InternalsVisibleTo("Steeltoe.Common.Test")]

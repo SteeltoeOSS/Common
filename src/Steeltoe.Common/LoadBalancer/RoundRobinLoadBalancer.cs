@@ -14,12 +14,11 @@
 
 using Microsoft.Extensions.Logging;
 using Steeltoe.Common.Discovery;
-using Steeltoe.Common.LoadBalancer;
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace Steeltoe.Common.Http.LoadBalancer
+namespace Steeltoe.Common.LoadBalancer
 {
     public class RoundRobinLoadBalancer : ILoadBalancer
     {

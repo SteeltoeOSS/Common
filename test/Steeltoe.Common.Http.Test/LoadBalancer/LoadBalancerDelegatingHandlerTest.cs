@@ -27,7 +27,7 @@ namespace Steeltoe.Common.Http.LoadBalancer.Test
         [Fact]
         public void Throws_If_LoadBalancerNull()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new LoadBalancerDelegatingHandler<RandomLoadBalancer>(null));
+            var exception = Assert.Throws<ArgumentNullException>(() => new LoadBalancerDelegatingHandler<BrokenLoadBalancer>(null));
             Assert.Equal("loadBalancer", exception.ParamName);
         }
 
