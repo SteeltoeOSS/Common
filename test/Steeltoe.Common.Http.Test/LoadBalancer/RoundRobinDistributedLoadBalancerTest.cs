@@ -13,16 +13,11 @@
 // limitations under the License.
 
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Steeltoe.Common.Discovery;
 using Steeltoe.Common.Http.Test;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Steeltoe.Common.Http.LoadBalancer.Test
