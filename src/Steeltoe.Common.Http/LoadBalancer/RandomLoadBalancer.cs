@@ -22,7 +22,7 @@ namespace Steeltoe.Common.Http.LoadBalancer
 {
     public class RandomLoadBalancer : ILoadBalancer
     {
-        private static Random _random = new Random();
+        private static readonly Random _random = new Random();
         private readonly IServiceInstanceProvider _serviceInstanceProvider;
         private readonly ILogger _logger;
 
@@ -32,10 +32,10 @@ namespace Steeltoe.Common.Http.LoadBalancer
             _logger = logger;
         }
 
-        public Uri ResolveServiceInstance(Uri request)
+        public async Task<Uri> ResolveServiceInstanceAsync(Uri request)
         {
             _logger?.LogTrace("ResolveServiceInstance {serviceInstance}", request.Host);
-            var availableServiceInstances = _serviceInstanceProvider.GetInstances(request.Host);
+            var availableServiceInstances = await Task.Run(() => _serviceInstanceProvider.GetInstances(request.Host));
             if (availableServiceInstances.Count > 0)
             {
                 var resolvedUri = availableServiceInstances[_random.Next(availableServiceInstances.Count)].Uri;
@@ -49,7 +49,7 @@ namespace Steeltoe.Common.Http.LoadBalancer
             }
         }
 
-        public Task UpdateStats(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception)
+        public Task UpdateStatsAsync(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception)
         {
             return Task.CompletedTask;
         }

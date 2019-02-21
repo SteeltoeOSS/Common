@@ -23,10 +23,10 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class LoadBalancerHttpClientBuilderExtensions
     {
         /// <summary>
-        /// Adds an <see cref="HttpMessageHandler"/> that performs random load balancer
+        /// Adds a <see cref="DelegatingHandler"/> that performs random load balancing
         /// </summary>
         /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
-        /// <remarks>You also need to either manually configure service instances in app config or add an <see cref="IDiscoveryClient" /> to the DI container so the load balancer can sent traffic to more than one address</remarks>
+        /// <remarks>You also need to either manually configure service instances in app config or add an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> to the DI container so the load balancer can sent traffic to more than one address</remarks>
         /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
         public static IHttpClientBuilder AddRandomLoadBalancer(this IHttpClientBuilder builder)
         {
@@ -38,9 +38,32 @@ namespace Microsoft.Extensions.DependencyInjection
             if (!builder.Services.Contains(new ServiceDescriptor(typeof(ILoadBalancer), typeof(RandomLoadBalancer), ServiceLifetime.Transient)))
             {
                 builder.Services.AddTransient(typeof(ILoadBalancer), typeof(RandomLoadBalancer));
+                builder.Services.AddTransient(typeof(RandomLoadBalancer), typeof(RandomLoadBalancer));
             }
 
             return builder.AddLoadBalancer<RandomLoadBalancer>();
+        }
+
+        /// <summary>
+        /// Adds a <see cref="DelegatingHandler"/> that performs round robin load balancing
+        /// </summary>
+        /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
+        /// <remarks>You also need to either manually configure service instances in app config or add an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> to the DI container so the load balancer can sent traffic to more than one address</remarks>
+        /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
+        public static IHttpClientBuilder AddRoundRobinLoadBalancer(this IHttpClientBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (!builder.Services.Contains(new ServiceDescriptor(typeof(ILoadBalancer), typeof(RoundRobinLoadBalancer), ServiceLifetime.Transient)))
+            {
+                builder.Services.AddTransient(typeof(ILoadBalancer), typeof(RoundRobinLoadBalancer));
+                builder.Services.AddTransient(typeof(RoundRobinLoadBalancer), typeof(RoundRobinLoadBalancer));
+            }
+
+            return builder.AddLoadBalancer<RoundRobinLoadBalancer>();
         }
 
         /// <summary>
@@ -57,9 +80,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (!builder.Services.Contains(new ServiceDescriptor(typeof(LoadBalancerDelegatingHandler<T>), typeof(LoadBalancerDelegatingHandler<T>), ServiceLifetime.Singleton)))
+            if (!builder.Services.Contains(new ServiceDescriptor(typeof(LoadBalancerDelegatingHandler<T>), typeof(LoadBalancerDelegatingHandler<T>), ServiceLifetime.Transient)))
             {
-                builder.Services.AddSingleton<LoadBalancerDelegatingHandler<T>>();
+                builder.Services.AddTransient<LoadBalancerDelegatingHandler<T>>();
             }
 
             builder.AddHttpMessageHandler<LoadBalancerDelegatingHandler<T>>();

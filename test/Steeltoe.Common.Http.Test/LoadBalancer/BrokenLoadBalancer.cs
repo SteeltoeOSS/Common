@@ -31,12 +31,12 @@ namespace Steeltoe.Common.Http.LoadBalancer.Test
         {
         }
 
-        public Uri ResolveServiceInstance(Uri request)
+        public Task<Uri> ResolveServiceInstanceAsync(Uri request)
         {
             throw new Exception("(╯°□°）╯︵ ┻━┻");
         }
 
-        public Task UpdateStats(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception)
+        public Task UpdateStatsAsync(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception)
         {
             Stats.Add(new Tuple<Uri, Uri, TimeSpan, Exception>(originalUri, resolvedUri, responseTime, exception));
             return Task.CompletedTask;

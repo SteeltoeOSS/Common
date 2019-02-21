@@ -19,8 +19,8 @@ namespace Steeltoe.Common.LoadBalancer
 {
     public interface ILoadBalancer
     {
-        Uri ResolveServiceInstance(Uri request);
+        Task<Uri> ResolveServiceInstanceAsync(Uri request);
 
-        Task UpdateStats(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception);
+        Task UpdateStatsAsync(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception);
     }
 }
