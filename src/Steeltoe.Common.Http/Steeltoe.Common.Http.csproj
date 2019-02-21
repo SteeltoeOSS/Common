@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonNetVersion)" />
     <PackageReference Include="System.Net.Http" Version="$(HttpVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="$(HttpExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(ExtensionsVersion)" />
    <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopVersion)">

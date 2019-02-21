@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.Extensions.Caching.Distributed;
 using Steeltoe.Common.Discovery;
 using Steeltoe.Common.Http.LoadBalancer;
 using Steeltoe.Common.LoadBalancer;
@@ -26,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Adds a <see cref="DelegatingHandler"/> that performs random load balancing
         /// </summary>
         /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
-        /// <remarks>You also need to either manually configure service instances in app config or add an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> to the DI container so the load balancer can sent traffic to more than one address</remarks>
+        /// <remarks>Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address</remarks>
         /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
         public static IHttpClientBuilder AddRandomLoadBalancer(this IHttpClientBuilder builder)
         {
@@ -48,7 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Adds a <see cref="DelegatingHandler"/> that performs round robin load balancing
         /// </summary>
         /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
-        /// <remarks>You also need to either manually configure service instances in app config or add an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> to the DI container so the load balancer can sent traffic to more than one address</remarks>
+        /// <remarks>Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address</remarks>
         /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
         public static IHttpClientBuilder AddRoundRobinLoadBalancer(this IHttpClientBuilder builder)
         {
@@ -64,6 +65,31 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.AddLoadBalancer<RoundRobinLoadBalancer>();
+        }
+
+        /// <summary>
+        /// Adds a <see cref="DelegatingHandler"/> that performs round robin load balancing backed by an <see cref="IDistributedCache"/>
+        /// </summary>
+        /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
+        /// <remarks>
+        ///     Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address<para />
+        ///     Also requires an <see cref="IDistributedCache"/> in the DI Container for consistent round robin balancing across multiple client instances
+        /// </remarks>
+        /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
+        public static IHttpClientBuilder AddDistributedRoundRobinLoadBalancer(this IHttpClientBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (!builder.Services.Contains(new ServiceDescriptor(typeof(ILoadBalancer), typeof(RoundRobinDistributedLoadBalancer), ServiceLifetime.Transient)))
+            {
+                builder.Services.AddTransient(typeof(ILoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
+                builder.Services.AddTransient(typeof(RoundRobinDistributedLoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
+            }
+
+            return builder.AddLoadBalancer<RoundRobinDistributedLoadBalancer>();
         }
 
         /// <summary>
