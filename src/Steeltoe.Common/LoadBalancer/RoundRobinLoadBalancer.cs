@@ -12,54 +12,93 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Steeltoe.Common.Discovery;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Steeltoe.Common.LoadBalancer
 {
     public class RoundRobinLoadBalancer : ILoadBalancer
     {
+        public string IndexKeyPrefix = "LoadBalancerIndex-";
         internal readonly IServiceInstanceProvider ServiceInstanceProvider;
+        internal readonly IDistributedCache _distributedCache;
         internal readonly ConcurrentDictionary<string, int> NextIndexForService = new ConcurrentDictionary<string, int>();
         private readonly ILogger _logger;
 
-        public RoundRobinLoadBalancer(IServiceInstanceProvider serviceInstanceProvider, ILogger logger = null)
+        public RoundRobinLoadBalancer(IServiceInstanceProvider serviceInstanceProvider, IDistributedCache distributedCache = null, ILogger logger = null)
         {
             ServiceInstanceProvider = serviceInstanceProvider ?? throw new ArgumentNullException(nameof(serviceInstanceProvider));
+            _distributedCache = distributedCache;
             _logger = logger;
+            _logger?.LogDebug("Distributed cache was provided to load balancer: {DistributedCacheIsNull}", _distributedCache == null);
         }
 
-        public async Task<Uri> ResolveServiceInstanceAsync(Uri request)
+        public virtual async Task<Uri> ResolveServiceInstanceAsync(Uri request)
         {
             var serviceName = request.Host;
             _logger?.LogTrace("ResolveServiceInstance {serviceName}", serviceName);
+            string cacheKey = IndexKeyPrefix + serviceName;
 
             // get instances for this service
-            var availableServiceInstances = await Task.Run(() => ServiceInstanceProvider.GetInstances(serviceName));
+            var availableServiceInstances = await ServiceInstanceProvider.GetInstancesWithCacheAsync(serviceName, _distributedCache);
+            if (!availableServiceInstances.Any())
+            {
+                _logger?.LogError("No service instances available for {serviceName}", serviceName);
+                return request;
+            }
 
             // get next instance, or wrap back to first instance if we reach the end of the list
             IServiceInstance serviceInstance = null;
-            var nextInstanceIndex = NextIndexForService.GetOrAdd(serviceName, 0);
+            var nextInstanceIndex = await GetOrInitNextIndex(cacheKey, 0);
             if (nextInstanceIndex >= availableServiceInstances.Count)
             {
-                serviceInstance = availableServiceInstances[0];
-                NextIndexForService[serviceName] = 1;
-            }
-            else
-            {
-                serviceInstance = availableServiceInstances[nextInstanceIndex];
-                NextIndexForService[serviceName] += 1;
+                nextInstanceIndex = 0;
             }
 
+            serviceInstance = availableServiceInstances[nextInstanceIndex];
+            await SetNextIndex(cacheKey, nextInstanceIndex);
             return new Uri(serviceInstance.Uri, request.PathAndQuery);
         }
 
-        public Task UpdateStatsAsync(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception)
+        public virtual Task UpdateStatsAsync(Uri originalUri, Uri resolvedUri, TimeSpan responseTime, Exception exception)
         {
             return Task.CompletedTask;
+        }
+
+        private async Task<int> GetOrInitNextIndex(string cacheKey, int initValue)
+        {
+            int index = initValue;
+            if (_distributedCache != null)
+            {
+                var cacheEntry = await _distributedCache.GetAsync(cacheKey);
+                if (cacheEntry != null && cacheEntry.Length > 0)
+                {
+                    index = BitConverter.ToInt16(cacheEntry, 0);
+                }
+            }
+            else
+            {
+                index = NextIndexForService.GetOrAdd(cacheKey, initValue);
+            }
+
+            return index;
+        }
+
+        private async Task SetNextIndex(string cacheKey, int currentValue)
+        {
+            if (_distributedCache != null)
+            {
+                await _distributedCache.SetAsync(cacheKey, BitConverter.GetBytes(currentValue + 1));
+            }
+            else
+            {
+                NextIndexForService[cacheKey] = currentValue + 1;
+            }
         }
     }
 }

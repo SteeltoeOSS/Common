@@ -44,10 +44,13 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds a <see cref="DelegatingHandler"/> that performs round robin load balancing
+        /// Adds a <see cref="DelegatingHandler"/> that performs round robin load balancing, optionally backed by an <see cref="IDistributedCache"/>
         /// </summary>
         /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
-        /// <remarks>Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address</remarks>
+        /// <remarks>
+        ///     Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address<para />
+        ///     Also requires an <see cref="IDistributedCache"/> in the DI Container for consistent round robin balancing across multiple client instances
+        /// </remarks>
         /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
         public static IHttpClientBuilder AddRoundRobinLoadBalancer(this IHttpClientBuilder builder)
         {
@@ -60,27 +63,6 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.TryAddTransient(typeof(RoundRobinLoadBalancer), typeof(RoundRobinLoadBalancer));
 
             return builder.AddLoadBalancer<RoundRobinLoadBalancer>();
-        }
-
-        /// <summary>
-        /// Adds a <see cref="DelegatingHandler"/> that performs round robin load balancing backed by an <see cref="IDistributedCache"/>
-        /// </summary>
-        /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
-        /// <remarks>
-        ///     Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address<para />
-        ///     Also requires an <see cref="IDistributedCache"/> in the DI Container for consistent round robin balancing across multiple client instances
-        /// </remarks>
-        /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
-        public static IHttpClientBuilder AddDistributedRoundRobinLoadBalancer(this IHttpClientBuilder builder)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.Services.TryAddTransient(typeof(ILoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
-            builder.Services.AddTransient(typeof(RoundRobinDistributedLoadBalancer), typeof(RoundRobinDistributedLoadBalancer));
-            return builder.AddLoadBalancer<RoundRobinDistributedLoadBalancer>();
         }
 
         /// <summary>
