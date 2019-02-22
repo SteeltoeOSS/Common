@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Steeltoe.Common.Discovery;
 using Steeltoe.Common.Http.LoadBalancer;
 using Steeltoe.Common.LoadBalancer;
@@ -27,61 +28,58 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a <see cref="DelegatingHandler"/> that performs random load balancing
         /// </summary>
-        /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
+        /// <param name="httpClientBuilder">The <see cref="IHttpClientBuilder"/>.</param>
         /// <remarks>Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address</remarks>
         /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
-        public static IHttpClientBuilder AddRandomLoadBalancer(this IHttpClientBuilder builder)
+        public static IHttpClientBuilder AddRandomLoadBalancer(this IHttpClientBuilder httpClientBuilder)
         {
-            if (builder == null)
+            if (httpClientBuilder == null)
             {
-                throw new ArgumentNullException(nameof(builder));
+                throw new ArgumentNullException(nameof(httpClientBuilder));
             }
 
-            builder.Services.TryAddTransient(typeof(ILoadBalancer), typeof(RandomLoadBalancer));
-            builder.Services.TryAddTransient(typeof(RandomLoadBalancer), typeof(RandomLoadBalancer));
-
-            return builder.AddLoadBalancer<RandomLoadBalancer>();
+            httpClientBuilder.Services.TryAddSingleton(typeof(RandomLoadBalancer));
+            return httpClientBuilder.AddLoadBalancer<RandomLoadBalancer>();
         }
 
         /// <summary>
         /// Adds a <see cref="DelegatingHandler"/> that performs round robin load balancing, optionally backed by an <see cref="IDistributedCache"/>
         /// </summary>
-        /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
+        /// <param name="httpClientBuilder">The <see cref="IHttpClientBuilder"/>.</param>
         /// <remarks>
         ///     Requires an <see cref="IServiceInstanceProvider" /> or <see cref="IDiscoveryClient"/> in the DI container so the load balancer can sent traffic to more than one address<para />
         ///     Also requires an <see cref="IDistributedCache"/> in the DI Container for consistent round robin balancing across multiple client instances
         /// </remarks>
         /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
-        public static IHttpClientBuilder AddRoundRobinLoadBalancer(this IHttpClientBuilder builder)
+        public static IHttpClientBuilder AddRoundRobinLoadBalancer(this IHttpClientBuilder httpClientBuilder)
         {
-            if (builder == null)
+            if (httpClientBuilder == null)
             {
-                throw new ArgumentNullException(nameof(builder));
+                throw new ArgumentNullException(nameof(httpClientBuilder));
             }
 
-            builder.Services.TryAddTransient(typeof(ILoadBalancer), typeof(RoundRobinLoadBalancer));
-            builder.Services.TryAddTransient(typeof(RoundRobinLoadBalancer), typeof(RoundRobinLoadBalancer));
-
-            return builder.AddLoadBalancer<RoundRobinLoadBalancer>();
+            httpClientBuilder.Services.TryAddSingleton(typeof(RoundRobinLoadBalancer));
+            return httpClientBuilder.AddLoadBalancer<RoundRobinLoadBalancer>();
         }
 
         /// <summary>
-        /// Adds an <see cref="HttpMessageHandler"/> with specified load balancer
+        /// Adds an <see cref="HttpMessageHandler"/> with specified load balancer <para/>
+        /// Does NOT add the specified load balancer to the container. Please add your load balancer separately.
         /// </summary>
-        /// <param name="builder">The <see cref="IHttpClientBuilder"/>.</param>
+        /// <param name="httpClientBuilder">The <see cref="IHttpClientBuilder"/>.</param>
         /// <typeparam name="T">The type of <see cref="ILoadBalancer"/> to use</typeparam>
         /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
-        public static IHttpClientBuilder AddLoadBalancer<T>(this IHttpClientBuilder builder)
+        public static IHttpClientBuilder AddLoadBalancer<T>(this IHttpClientBuilder httpClientBuilder)
             where T : ILoadBalancer
         {
-            if (builder == null)
+            if (httpClientBuilder == null)
             {
-                throw new ArgumentNullException(nameof(builder));
+                throw new ArgumentNullException(nameof(httpClientBuilder));
             }
 
-            builder.Services.TryAddTransient<LoadBalancerDelegatingHandler<T>>();
-            builder.AddHttpMessageHandler<LoadBalancerDelegatingHandler<T>>();
-            return builder;
+            httpClientBuilder.Services.TryAddTransient<LoadBalancerDelegatingHandler>();
+            httpClientBuilder.AddHttpMessageHandler((services) => new LoadBalancerDelegatingHandler(services.GetRequiredService<T>(), services.GetService<ILogger>()));
+            return httpClientBuilder;
         }
     }
 }

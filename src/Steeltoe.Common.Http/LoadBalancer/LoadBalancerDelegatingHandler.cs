@@ -23,29 +23,22 @@ using System.Threading.Tasks;
 namespace Steeltoe.Common.Http.LoadBalancer
 {
     /// <summary>
-    /// Same as <see cref="LoadBalancerHttpClientHandler{T}"/> except is a <see cref="DelegatingHandler"/>
+    /// Same as <see cref="LoadBalancerHttpClientHandler"/> except is a <see cref="DelegatingHandler"/>, for use with HttpClientFactory
     /// </summary>
-    /// <typeparam name="T">Type of <see cref="ILoadBalancer"/> to use with requests</typeparam>
-    internal class LoadBalancerDelegatingHandler<T> : DelegatingHandler
-            where T : ILoadBalancer
+    internal class LoadBalancerDelegatingHandler : DelegatingHandler
     {
-        private readonly T _loadBalancer;
+        private readonly ILoadBalancer _loadBalancer;
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LoadBalancerDelegatingHandler{T}"/> class. <para />
+        /// Initializes a new instance of the <see cref="LoadBalancerDelegatingHandler"/> class. <para />
         /// For use with <see cref="IHttpClientBuilder"/>
         /// </summary>
         /// <param name="loadBalancer">Load balancer to use</param>
         /// <param name="logger">For logging</param>
-        public LoadBalancerDelegatingHandler(T loadBalancer, ILogger logger = null)
+        public LoadBalancerDelegatingHandler(ILoadBalancer loadBalancer, ILogger logger = null)
         {
-            if (loadBalancer == null)
-            {
-                throw new ArgumentNullException(nameof(loadBalancer));
-            }
-
-            _loadBalancer = loadBalancer;
+            _loadBalancer = loadBalancer ?? throw new ArgumentNullException(nameof(loadBalancer));
             _logger = logger;
         }
 

@@ -27,7 +27,7 @@ namespace Steeltoe.Common.Http.LoadBalancer.Test
         [Fact]
         public void Throws_If_LoadBalancerNull()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new LoadBalancerDelegatingHandler<BrokenLoadBalancer>(null));
+            var exception = Assert.Throws<ArgumentNullException>(() => new LoadBalancerDelegatingHandler(null));
             Assert.Equal("loadBalancer", exception.ParamName);
         }
 
@@ -37,7 +37,7 @@ namespace Steeltoe.Common.Http.LoadBalancer.Test
             // arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://replaceme/api");
             var loadBalancer = new FakeLoadBalancer();
-            var handler = new LoadBalancerDelegatingHandler<FakeLoadBalancer>(loadBalancer) { InnerHandler = new TestInnerDelegatingHandler() };
+            var handler = new LoadBalancerDelegatingHandler(loadBalancer) { InnerHandler = new TestInnerDelegatingHandler() };
             var invoker = new HttpMessageInvoker(handler);
 
             // act
@@ -54,7 +54,7 @@ namespace Steeltoe.Common.Http.LoadBalancer.Test
             // arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://replaceme/api");
             var loadBalancer = new BrokenLoadBalancer();
-            var handler = new LoadBalancerDelegatingHandler<BrokenLoadBalancer>(loadBalancer) { InnerHandler = new TestInnerDelegatingHandler() };
+            var handler = new LoadBalancerDelegatingHandler(loadBalancer) { InnerHandler = new TestInnerDelegatingHandler() };
             var invoker = new HttpMessageInvoker(handler);
 
             // act
@@ -70,7 +70,7 @@ namespace Steeltoe.Common.Http.LoadBalancer.Test
             // arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://replaceme/api");
             var loadBalancer = new FakeLoadBalancer();
-            var handler = new LoadBalancerDelegatingHandler<FakeLoadBalancer>(loadBalancer) { InnerHandler = new TestInnerDelegatingHandlerBrokenServer() };
+            var handler = new LoadBalancerDelegatingHandler(loadBalancer) { InnerHandler = new TestInnerDelegatingHandlerBrokenServer() };
             var invoker = new HttpMessageInvoker(handler);
 
             // act
