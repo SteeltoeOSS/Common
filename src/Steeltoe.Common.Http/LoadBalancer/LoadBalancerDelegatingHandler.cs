@@ -25,7 +25,7 @@ namespace Steeltoe.Common.Http.LoadBalancer
     /// <summary>
     /// Same as <see cref="LoadBalancerHttpClientHandler"/> except is a <see cref="DelegatingHandler"/>, for use with HttpClientFactory
     /// </summary>
-    internal class LoadBalancerDelegatingHandler : DelegatingHandler
+    public class LoadBalancerDelegatingHandler : DelegatingHandler
     {
         private readonly ILoadBalancer _loadBalancer;
         private readonly ILogger _logger;
