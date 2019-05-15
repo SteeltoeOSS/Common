@@ -1,5 +1,7 @@
 # Steeltoe Common Packages
 
+> NOTICE: This repository has been relocated as a sub-directory under the [Steeltoe](https://github.com/SteeltoeOSS/steeltoe) repository. All issues and future development will be done under that repository.
+
 This repository contains several packages that are common to other Steeltoe components.
 
 Windows Master (Stable): [![AppVeyor Master](https://ci.appveyor.com/api/projects/status/3omrdvukuvv12gig/branch/master?svg=true)](https://ci.appveyor.com/project/steeltoe/common/branch/master)
